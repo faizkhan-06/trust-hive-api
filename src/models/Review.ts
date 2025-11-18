@@ -5,12 +5,13 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from "typeorm";
 import Business from "./Business";
 
 @Entity({ name: "reviews" })
 class Review {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column("double")
@@ -22,17 +23,21 @@ class Review {
   @Column("char")
   business_id: string;
 
-  @Column()
+  @Column({default: 1})
   is_active: boolean;
 
-  @Column()
+  @Column({default: 0})
   is_deleted: boolean;
 
-  @Column("timestamp")
+  @Column('datetime')
   @CreateDateColumn()
   created_at: Date;
 
-  @Column("timestamp")
+  @Column("datetime")
+  @UpdateDateColumn()
+  updated_at: Date;
+
+  @Column('datetime')
   deleted_at: Date;
 
 

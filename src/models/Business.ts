@@ -1,10 +1,10 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import User from "./User";
 import Review from "./Review";
 
 @Entity({ name: "businesses" })
 class Business {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column("varchar")
@@ -19,17 +19,21 @@ class Business {
   @Column("char")
   user_id: string;
 
-  @Column()
+  @Column({default: 1})
   is_active: boolean;
 
-  @Column()
+  @Column({default: 0})
   is_deleted: boolean;
 
-  @Column("timestamp")
+  @Column('datetime')
   @CreateDateColumn()
   created_at: Date;
 
-  @Column("timestamp")
+  @Column("datetime")
+  @UpdateDateColumn()
+  updated_at: Date;
+
+  @Column('datetime')
   deleted_at: Date;
 
   @OneToOne(() => User)

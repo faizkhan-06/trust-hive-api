@@ -1,6 +1,7 @@
 import { DataSourceOptions } from "typeorm";
 import { Database } from "./Database";
 import Authenticator from "./Authenticator";
+import auth from "../config/Auth";
 
 class App {
   static config: DataSourceOptions;
@@ -12,14 +13,7 @@ class App {
     try {
       App.config ? await Database.init(App.config) : false;
 
-      Authenticator.init({
-        token: {
-          secret: process.env.JWT_SECRET,
-          options: {
-            expiresIn: 86400 * 15 
-          }
-        }
-      });
+      Authenticator.init(auth);
 
     } catch (error) {
       console.error(error);

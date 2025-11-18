@@ -24,9 +24,6 @@ class Authenticator {
     return token;
   }
 
-  static getUser(req: Request) {
-    return req.user as User;
-  }
 }
 
 export default Authenticator;
