@@ -30,6 +30,9 @@ export default async (req: Request, res: Response, next: NextFunction) => {
               id: decodedToken.sub,
               is_active: 1,
               is_deleted: 0
+            },
+            relations: {
+              business: true
             }
           }) as User;
 

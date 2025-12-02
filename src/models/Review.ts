@@ -20,6 +20,9 @@ class Review {
   @Column("varchar")
   review_text: string;
 
+  @Column("varchar")
+  reviewer_name: string;
+
   @Column("char")
   business_id: string;
 

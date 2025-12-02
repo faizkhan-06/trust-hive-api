@@ -6,19 +6,21 @@ import {
   serverError,
   unauthorizedAccess,
 } from "../../libs/Response";
-import { getRepo } from "../../utils";
+import { getRepo, uniqueSlug } from "../../utils";
 import bcrypt from "bcrypt";
 import User from "../models/User";
 import Authenticator from "../../libs/Authenticator";
+import Business from "../models/Business";
 
 const Register = async (req: Request, res: Response) => {
   try {
+    const businessRepo = getRepo("Business");
     const userRepo = getRepo("User");
 
-    const { email, password } = req.body;
+    const { email, password, business_name, business_type } = req.body;
 
-    if (!email || !password)
-      return badRequest(res, "Email and Password both are required !");
+    if (!email || !password || !business_name || !business_type)
+      return badRequest(res, "All fields are required.");
 
     const emailCount = await userRepo.count({
       where: {
@@ -38,9 +40,20 @@ const Register = async (req: Request, res: Response) => {
 
     const user = await userRepo.save(newUser);
 
+    const slug = uniqueSlug(business_name);
+
+    const newBusiness = new Business();
+
+    newBusiness.name = business_name;
+    newBusiness.type = business_type;
+    newBusiness.slug = slug;
+    newBusiness.user_id = user.id;
+
+    const businessData = (await businessRepo.save(newBusiness)) as Business;
+
     const token = Authenticator.token(user.id);
 
-    return okResponse(res, { user: user, token: token }, "User Registered");
+    return okResponse(res, { user: {...user, business: businessData}, token: token}, "User Registered");
   } catch (error) {
     console.error(error);
     return serverError(res, error);
@@ -59,9 +72,12 @@ const Login = async (req: Request, res: Response) => {
       where: {
         email: email,
       },
+      relations: {
+        business: true
+      }
     })) as User;
 
-    if (!existingUser) return notFound(res, "User not found!");
+    if (!existingUser) return notFound(res, "Invalid email or password.");
 
     const isPasswordMatched = await bcrypt.compare(
       password,
