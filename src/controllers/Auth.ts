@@ -53,7 +53,11 @@ const Register = async (req: Request, res: Response) => {
 
     const token = Authenticator.token(user.id);
 
-    return okResponse(res, { user: {...user, business: businessData}, token: token}, "User Registered");
+    return okResponse(
+      res,
+      { user: { ...user, business: businessData }, token: token },
+      "User Registered",
+    );
   } catch (error) {
     console.error(error);
     return serverError(res, error);
@@ -73,15 +77,15 @@ const Login = async (req: Request, res: Response) => {
         email: email,
       },
       relations: {
-        business: true
-      }
+        business: true,
+      },
     })) as User;
 
     if (!existingUser) return notFound(res, "Invalid email or password.");
 
     const isPasswordMatched = await bcrypt.compare(
       password,
-      existingUser.password
+      existingUser.password,
     );
     if (!isPasswordMatched)
       return unauthorizedAccess(res, "Incorrect password");
@@ -91,7 +95,7 @@ const Login = async (req: Request, res: Response) => {
     return okResponse(
       res,
       { user: existingUser, token: token },
-      "User Logged In"
+      "User Logged In",
     );
   } catch (error) {
     console.error(error);
@@ -100,4 +104,38 @@ const Login = async (req: Request, res: Response) => {
   }
 };
 
-export { Register, Login };
+const ChangePassword = async (req: Request, res: Response) => {
+  try {
+    const userRepo = getRepo("User");
+    const { old_password, new_password } = req.body;
+
+    const user = req.user as User;
+
+    if (!old_password || !new_password)
+      return badRequest(
+        res,
+        "The request must include both 'old_password' and 'new_password'.",
+      );
+
+    const isPasswordMatched = await bcrypt.compare(
+      old_password,
+      user.password,
+    );
+
+    if(!isPasswordMatched) return unauthorizedAccess(res, "Wrong Old Password !");
+
+    const hashedPassword = await bcrypt.hash(new_password, 12);
+
+    await userRepo.save({
+      id: user.id,
+      password: hashedPassword
+    });
+
+    return okResponse(res, null, "Password Updated.");
+  } catch (error) {
+    console.error(error);
+    return serverError(res, error);
+  }
+};
+
+export { Register, Login, ChangePassword };
